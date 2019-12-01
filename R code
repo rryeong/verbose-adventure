@@ -1,0 +1,100 @@
+install.packages("rvest")
+library(rvest)
+install.packages("RSelenium") #RSelenium 패키지이용
+library(RSelenium)
+
+remDr <- remoteDriver(
+  remoteServerAddr = "localhost",
+  port = 4446L,
+  browserName = "chrome"
+) #port는 cmd에 입력했던 것으로 4446L
+
+remDr$open() #크롬창열기 
+
+remDr$navigate("https://datalab.naver.com/keyword/realtimeList.naver?where=main")
+webElem <- remDr$findElement(using = "class", value = "section_keyword")
+
+webElems <- remDr$findElements(using = "class", value = "ranking_list")
+
+resHeaders <- unlist(lapply(webElems, function(x) {x$getElementText()}))
+resHeaders
+
+webElem$clickElement()
+remDr$getCurrentUrl()
+
+remDr$close()
+
+
+###########################################################3
+require(rvest)
+# 날짜를 다루는 패키지
+require(lubridate)
+
+
+####
+getwd()
+
+# 생성할 폴더 이름
+folder <- 'C:/test'
+
+# 폴더가 없으면 생성
+dir.create("folder")
+   
+# working directory 변경
+setwd("folder")
+
+##
+getwd()
+   
+# 오늘 날짜
+date <- Sys.Date()
+   
+# 현재 시간
+h <- hour(Sys.time())
+m <- minute(Sys.time())
+   
+# '현재 시간' 폴더 이름 
+now <- paste(date, h, m, sep='-')
+now.folder <- paste(folder, now, sep='/')
+   
+# 폴더 생성   
+dir.create("now.folder")
+   
+setwd("now.folder")   
+   
+url='https://datalab.naver.com/keyword/realtimeList.naver?datetime= T12%3A40%3A00&where=main'
+   
+datetime=2019-11-01:2019-11-30
+
+pages=paste0(url, datetime, sep='')
+   
+
+####
+install.packages("rvest")
+library(rvest)
+
+#저장할 파일 이름 생성
+file.name <- paste0('page', page, '.txt')
+for(i in 1:length(pages)){
+file <- read_html(pages[i]) 
+#웹 사이트에서 다운받은 페이지 저장
+write_xml(file, file = file.name[i])
+   }
+   
+#폴더에 저장된 웹 페이지에서 데이터를 얻는다.
+extract = function(file) {
+html <- read_html(file) 
+table <- html %>% html_nodes("table")
+td <- table %>% html_nodes("td") 
+text <- td %>% html_text() 
+text <- gsub("(\r)(\n)(\t)*", "", text)
+df <- as.data.frame(matrix(text, nrow=10, ncol=6, byrow=TRUE))
+     
+link <- html %>% html_nodes("a.hover-link")
+dataIdx <- gsub("<a.*dataIdx=|&.*", "", link)
+dataIdx <- dataIdx[c(TRUE, FALSE)]
+df <- cbind(df, dataIdx)
+   }
+   
+result <- lapply(file.name, extract)
+do.call(rbind, result)

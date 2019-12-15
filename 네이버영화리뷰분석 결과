@@ -15,7 +15,7 @@
 -각 영화별 네이버 리뷰 홈페이지에서 크롤링해서 리뷰 수와 평균 별점 수의 데이터 수집
 
 영화리뷰수(총 414887개의 리뷰데이터) barplot으로 시각화
-![image](https://user-images.githubusercontent.com/58136252/70859776-0f28b600-1f5c-11ea-8352-ddcc7d0ec10a.png)
+https://github.com/rryeong/verbose-adventure/issues/6#issue-538018931
 
 
 감성분석

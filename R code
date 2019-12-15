@@ -9,7 +9,7 @@ remDr <- remoteDriver(
   browserName = "chrome"
 ) #port는 cmd에 입력했던 것으로 4446L
 
-remDr$open() #크롬창열기 
+remDr$open() #크롬 창열기 
 
 remDr$navigate("https://datalab.naver.com/keyword/realtimeList.naver?where=main")
 webElem <- remDr$findElement(using = "class", value = "section_keyword")
@@ -25,23 +25,22 @@ remDr$getCurrentUrl()
 remDr$close()
 
 
-###########################################################3
+###웹사이트의 정보가 자주 갱신되는 경우
 require(rvest)
 # 날짜를 다루는 패키지
 require(lubridate)
 
-
-####
+##
 getwd()
 
 # 생성할 폴더 이름
-folder <- 'C:/test'
+afolder <- 'C:/test'
 
 # 폴더가 없으면 생성
-dir.create("folder")
+dir.create("afolder")
    
 # working directory 변경
-setwd("folder")
+setwd("afolder")
 
 ##
 getwd()
@@ -55,46 +54,69 @@ m <- minute(Sys.time())
    
 # '현재 시간' 폴더 이름 
 now <- paste(date, h, m, sep='-')
-now.folder <- paste(folder, now, sep='/')
+now.afolder <- paste(afolder, now, sep='/')
    
 # 폴더 생성   
-dir.create("now.folder")
+dir.create("now.afolder")
    
-setwd("now.folder")   
-   
-url='https://datalab.naver.com/keyword/realtimeList.naver?datetime= T12%3A40%3A00&where=main'
-   
-datetime=2019-11-01:2019-11-30
+setwd("now.afolder")   
 
-pages=paste0(url, datetime, sep='')
-   
+###########################################################url갱신   
+url='https://datalab.naver.com/keyword/realtimeList.naver?datetimeT05%3A59%3A00'
 
-####
+#########################################################datetime 붙이는 수정
+seq(as.Date('2019/11/01','%Y/%m/%d'),as.Date('2019/11/28','%Y/%m/%d'),1)
+date<-seq(as.Date('2019/11/01','%Y/%m/%d'),as.Date('2019/11/28','%Y/%m/%d'),1)
+date
+
+day<-paste0('datetime=',date)
+
+###strsplit:문자형 벡터x를 split기준으로 해서 나누기
+name<-c("datetime= ")
+url1<-strsplit(url,'datetime')
+url1
+
+url2<-url1[[1]][1]
+url3<-url1[[1]][2]
+url4<-paste0(url2,day,url3)
+url4
+
+pages=url4
+
+##12.13
+######################################웹사이트 정보자주갱신되는 경우  url 수정하고 다음 
 install.packages("rvest")
 library(rvest)
 
+##
+length(pages)
+
 #저장할 파일 이름 생성
-file.name <- paste0('page', page, '.txt')
+file.name <- paste0(day, '.txt')
 for(i in 1:length(pages)){
 file <- read_html(pages[i]) 
 #웹 사이트에서 다운받은 페이지 저장
 write_xml(file, file = file.name[i])
    }
-   
+
+
 #폴더에 저장된 웹 페이지에서 데이터를 얻는다.
 extract = function(file) {
 html <- read_html(file) 
-table <- html %>% html_nodes("table")
-td <- table %>% html_nodes("td") 
-text <- td %>% html_text() 
+div <- html %>% html_nodes("rank_scroll")
+div <- table %>% html_nodes("keyword_rank") 
+text <- div %>% html_text() 
 text <- gsub("(\r)(\n)(\t)*", "", text)
-df <- as.data.frame(matrix(text, nrow=10, ncol=6, byrow=TRUE))
+df <- as.data.frame(matrix(text, nrow=20, ncol=6, byrow=TRUE))
      
+
+######################################################수정필요
 link <- html %>% html_nodes("a.hover-link")
 dataIdx <- gsub("<a.*dataIdx=|&.*", "", link)
 dataIdx <- dataIdx[c(TRUE, FALSE)]
 df <- cbind(df, dataIdx)
-   }
+}
+
    
 result <- lapply(file.name, extract)
 do.call(rbind, result)

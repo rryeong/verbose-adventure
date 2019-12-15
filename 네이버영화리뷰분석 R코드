@@ -1,7 +1,5 @@
 #크롤링
-install.packages("rvest")
-install.packages("R6")
-install.packages("stringr")
+
 library(rvest)
 library(R6)
 library(stringr)
@@ -44,17 +42,8 @@ colnames(df) = c("reply","rank","date")
 
 write.csv(df, "aladin.csv", row.names = FALSE)
 
+
 #감성분석
-install.packages("plyr")
-install.packages("stringr")
-install.packages("NLP")
-install.packages("tm")
-install.packages("data.table")
-install.packages("stringr")
-install.packages("wordcloud")
-install.packages("RPMG")
-
-
 
 library(plyr)
 library(stringr)
@@ -102,79 +91,93 @@ for(i in r) {
     score = sum(pos.matches) - sum(neg.matches)  # 긍정 - 부정
     return(score)
   }, posDic, negDic)
-  
-  scores.df = data.frame(score=scores, text=sentences)
-  return(scores.df)
-  }
 
-  result=sentimental(data[,1], posDic, negDic)
 
-  result$remark[result$score >=1] = "긍정"
-  result$remark[result$score ==0] = "중립"
-  result$remark[result$score < 0] = "부정"
+#마이닝
 
-  sentiment_result= table(result$remark)
 
-  emotion[i,1] <- sentiment_result[1]
-  emotion[i,2] <- sentiment_result[3]
-  emotion[i,3] <- sentiment_result[2]
+library(plyr)
+library(stringr)
+library(NLP)
+library(tm)
+library(data.table)
+library(stringr)
+library(wordcloud)
+library(RPMG)
+
+data1 = read.csv("C:/Users/sjsj9/Desktop/세진이와 함께하는 행복한 텍스트마이닝/엑셀/영화/movie1.csv",stringsAsFactors = F)
+data1=data1$reply[1:1000]
+data2 = read.csv("C:/Users/sjsj9/Desktop/세진이와 함께하는 행복한 텍스트마이닝/엑셀/영화/movie16.csv",stringsAsFactors = F)
+data2=data2$reply[1:1000]
+data3 = read.csv("C:/Users/sjsj9/Desktop/세진이와 함께하는 행복한 텍스트마이닝/엑셀/영화/movie31.csv",stringsAsFactors = F)
+data3=data3$reply[1:1000]
+
+
+data=rbind(data1,data2,data3)
+
+
+#processing
+sentimental = function(sentence) {
+        
+        sentence = gsub('[[:punct:]]', '', sentence) # 문장부호 제거
+        sentence = gsub('[[:cntrl:]]', '', sentence) # 특수문자 제거
+        sentence = gsub('\\d+', '', sentence)        # 숫자 제거
+        
+        sentence = tolower(sentence)                 # 모두 소문자로 변경(단어가 모두 소문자 임)
+        
+        word.list = str_split(sentence, '\\s+')      # 공백 기준으로 단어 생성 > \\s+ : 공백 정규식, +(1개 이상) 
+        words = unlist(word.list)                    # unlist() : list를 vector 객체로 구조변경
+    
+    return(words)
 }
 
+result=sentimental(data)
 
-write.csv(emotion,"2017emotion.csv",row.names=FALSE)
+#wordcloud
+wordcloud(result,min.freq = 3,max.words = 40,random.order = FALSE,col = colors())
+
 
 #기계학습
-#########################################################트리트리모형
-#의사결정나무 패키지 3개존재(tree,rpart,party)
-#데이터준비-의사결정나무만들기-가지치기-예측 및 모델평가단계
 
-#A.데이터 준비
-df<-read.csv("data.csv")
+setwd("C:/Users/default.default-PC/Desktop/데이터시각화")
+df<-read.csv("C:/Users/default.default-PC/Desktop/데이터시각화/엑셀/박스오피스(최종수정).csv")
+sdf<-df$관객수
+sdf<-as.vector(sdf)
 
-#첫번째 tree패키지 이용
-#caret패키지를 사용해서 데이터를 trani셋과 test셋으로 구분.(트리모형의 성능향상을 위해)
-#70%는 train을 위해 30%는 test를 위해 준비.
-install.packages("caret")
+quantile(sdf)
+
+sdf_0=1826912 #0%
+sdf_25=2605355 #25%
+sdf_50=4163710 #50%
+sdf_75=7583174 #75%
+sdf_100=16265494 #100%
+
+sdf_025=df
+
+sdf_quartile_1 = subset(df, subset=c(관객수 >= sdf_0 & 관객수 < sdf_25)) #1
+sdf_quartile_2 = subset(df, subset=c(관객수 >= sdf_25 & 관객수 < sdf_50)) #2
+sdf_quartile_3 = subset(df, subset=c(관객수 >= sdf_50 & 관객수 < sdf_75)) #3
+sdf_quartile_4 = subset(df, subset=c(관객수>= sdf_75 & 관객수 <= sdf_100)) #4
+
+#(아주나쁨,나쁨,좋음,아주좋음)
+df<-read.csv("C:/Users/default.default-PC/Desktop/데이터시각화/엑셀/박스오피스(최종수정).csv")
+colnames(df)
+dt<-df[,c(1,5,6,9,11,15,16,17)]
+
+library(MASS)
+library(randomForest)
 library(caret)
 
-train<-df[1:30,]
-test <- df[31:40,]
-
-#B.의사결정 나무 형성
-#train데이터 셋을 이용해서 의사결정나무 만들기.
-install.packages("tree")
-library(tree)
-treemod<-tree(흥행수준~. , data=train)
-dev.new()
-plot(treemod)
-text(treemod)
+set.seed(10)
+intrain<-createDataPartition(y=dt$흥행수준, p=0.7, list=FALSE) 
+train<-dt[intrain, ] #70%
+test<-dt[-intrain, ] #30%
 
 
-#C.가지치기(PRUNING)
-#k-fold cross-validation을 사용해서  train셋을 여러번 쪼개서 테스트함.
-#분산이 가장 낮은 가지수를 선택하면 됨.
-#tree패키지에서 제공하는 cv.tree함수를 사용하면 간단하게 확인가능함.
-cv.trees<-cv.tree(treemod, FUN=prune.tree ) 
-##수정해봐야함. for classification decision tree
-##FUN=prune.misclass 조건 다른거 있는지 확인해서 해보기
-dev.new()
-plot(cv.trees)
+rf.fit <- randomForest(흥행수준~.,data=train,mtry=4,ntree=200, importance=T)
+test_x <- test[,c(-1)]
+test_y <- test[,1]
 
+y_pred =predict(rf.fit,test_x)
 
-
-#CV그래프를 보니 13개의 가지의 트리모형이 가장 분산이 낮다.
-#PRUNING함
-prune.trees <- prune.tree(treemod, best=???)  # for regression decision tree, use prune.tree function
-dev.new()
-plot(prune.trees)
-text(prune.trees, pretty=0)
-
-
-
-#D.예측하기&모델 평가
-install.packages("e1071")
-library(e1071)
-####################################################treepred오류&confusionMatrix오류
-str(prune.trees)
-treepred <- predict(prune.trees, test, type='class')
-confusionMatrix(treepred, test$흥행수준)
+confusionMatrix(y_pred,test_y)

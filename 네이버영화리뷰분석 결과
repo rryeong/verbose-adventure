@@ -31,4 +31,18 @@ H1:두 집단으로 나눈 흥행작과 비흥행작의 평균이 다르다.
 ->매출액, 관객수, 스크린수, 상영횟수, 1주차리뷰수,3주차리뷰수, 1주차별점, 3주차별점
 
 리뷰내용 WORLDCLOUD
+Wordcloud1: 흥행작(2017,2018,2019 1위)
 https://github.com/rryeong/verbose-adventure/issues/1#issue-538017718
+Worldcloud2: 비흥행작(2017,2018,2019년 30위)
+https://github.com/rryeong/verbose-adventure/issues/2#issue-538017841
+
+t.test및 worldcloud결과: 두 집단(흥행작/비흥행작)의 리뷰 내용의 차이는 미미하다.
+
+감성분석 pie chart
+pie chart1:흥행작(2017,2018,2019년 1위) 
+
+pie chart2:비흥행작(2017,2018,2019년 30위)
+
+
+pie chart결과: 두 집단 흥행작/비흥행작의 감성점수의 차이는 미미하다.
+

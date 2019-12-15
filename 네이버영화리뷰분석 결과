@@ -9,8 +9,7 @@
 
 사용데이터
 예시)
-
-
+![image](https://user-images.githubusercontent.com/58136252/70859752-cc66de00-1f5b-11ea-8b57-964bb1b509ad.png)
 
 -Boxoffice에서 각 영화별 매출액, 관객수, 스크린수, 상영횟수의 데이터 수집
 -각 영화별 네이버 리뷰 홈페이지에서 크롤링해서 리뷰 수와 평균 별점 수의 데이터 수집
